@@ -35,10 +35,12 @@ void cleanupRules(vector<Rule*>& rules) {
 /* Attempt to produce a solution by constructing a tree or aguments
  * to get from source to target in the MIU system 
  */
-void runMIU (string source, string target) {
+bool runMIU (string source, string target) {
 	
+	string start = source;
 	vector<Rule*> rules = initRules(); /* A list of the possible rules that we can apply */
 	map<string, string> nearestParent; /* Used to avoid duplication and to reconstruct the path */
+	map<string, int>    axiom;		   /* determine what step we took to get to a particular state */
 	queue<string> waiting;		       /* A queue of states that we have yet to visit */
 
 	/* Apply rules until we have reached our destination */
@@ -53,19 +55,40 @@ void runMIU (string source, string target) {
 			
 			/* Add each processed string to the queue of strings that need to be processed */
 			for (int j = 0; j < applied.size(); j++) {
-				set<string>::iterator it = results.find(applied[j]);	/* Avoid duplicates */
-				if (it == results.end() && applied[j].size() < MAX_STRING_LENGTH) {
-					results.insert(applied[j]);
+				map<string, string>::iterator it = nearestParent.find(applied[j]);	/* Avoid duplicates */
+				if (it == nearestParent.end() && applied[j].size() < MAX_STRING_LENGTH) {
+					nearestParent[applied[j]] = source;
+					axiom[applied[j]] = i;
 					waiting.push(applied[j]);
 				}
 			}
 		}
-		if (waiting.empty()) break; /* no more elements left to process */
+		if (waiting.empty()) {
+			cleanupRules(rules);
+			return false; 		/* No more elements to process, we were unable to find a path */
+		}
 		
 		/* Obtain the next string to test */
 		source = waiting.front();
 		waiting.pop();
 	}
+
+	/* Reconstruct the path */
+	vector<string> path;
+	while (source != start) {
+		path.push_back(source);
+		source = nearestParent[source];
+	}
+	path.push_back(source);
+	cout << "    " << source << endl;
+	for (int i = path.size() - 2; i >= 0; i--) {
+		cout << "[" << axiom[path[i]] + 1 << "] " << path[i + 1] << " -> " << path[i] << endl;
+	}
+	cout << "    " << target << endl;
+
+	cleanupRules(rules);
+	return true;
+
 }
 
 int main(int argc, char** argv) {
@@ -80,7 +103,9 @@ int main(int argc, char** argv) {
 	string source = argv[1];
 	string target = argv[2];
 
-	runMIU(source, target);
+	if (!runMIU(source, target)) {
+		cout << "I could not construct a path from '" << source << "' to '" << target << "'" << endl;
+	}
 
 	return 0;
 }

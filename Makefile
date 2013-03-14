@@ -1,9 +1,14 @@
-CXX = clang++
+CXX = g++
 EXEC = miu
-OBJECTS = rules.o
+OBJECTS = rules.o rule.o
 
 ${EXEC} : ${OBJECTS} miu.cpp
 	${CXX} ${OBJECTS} miu.cpp -o ${EXEC}
 
-rules.o : rules.hpp rules.cpp
+rule.o : rule.hpp rule.cpp
+	${CXX} -c rule.cpp -o rule.o
+rules.o : rules.hpp rules.cpp rule.o
 	${CXX} -c rules.cpp -o rules.o
+
+clean:
+	rm -fr ${OBJECTS} ${EXEC}

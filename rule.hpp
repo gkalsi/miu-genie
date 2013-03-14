@@ -6,7 +6,10 @@
 
 class Rule {
 public:
-	virtual std::vector<std::string> apply(std::string& s) = 0;
+	std::vector<std::string> apply(std::string& s); 	/* Apply the current rule to the given string s */
+private:
+	virtual std::vector<std::string> applyImpl(std::string& s) = 0; /* Driver rule application function implemented by the derived class */
+	virtual bool canApply(std::string& s) = 0;						/* Driver rule testing function implemented by the derived class */
 };
 
 #endif /* __MIU_RULE__ */
