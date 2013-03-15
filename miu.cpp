@@ -11,7 +11,7 @@
 using namespace std;
 
 /* Do not produce any strings in MIU longer than this */
-const int MAX_STRING_LENGTH = 20;
+const int MAX_STRING_LENGTH = 25;
 
 /* Create a list of rules */
 vector<Rule*> initRules() {
@@ -32,6 +32,13 @@ void cleanupRules(vector<Rule*>& rules) {
 	}
 }
 
+class StrLenCompare {
+public:
+    bool operator()(string& s1, string& s2) {
+        return s1.size() > s2.size();
+    }
+};
+
 /* Attempt to produce a solution by constructing a tree or aguments
  * to get from source to target in the MIU system 
  */
@@ -41,7 +48,7 @@ bool runMIU (string source, string target) {
 	vector<Rule*> rules = initRules(); /* A list of the possible rules that we can apply */
 	map<string, string> nearestParent; /* Used to avoid duplication and to reconstruct the path */
 	map<string, int>    axiom;		   /* determine what step we took to get to a particular state */
-	queue<string> waiting;		       /* A queue of states that we have yet to visit */
+	priority_queue<string, vector<string>, StrLenCompare> waiting;		       /* A queue of states that we have yet to visit */
 
 	/* Apply rules until we have reached our destination */
 	while (source != target) {
@@ -69,7 +76,7 @@ bool runMIU (string source, string target) {
 		}
 		
 		/* Obtain the next string to test */
-		source = waiting.front();
+		source = waiting.top();
 		waiting.pop();
 	}
 
